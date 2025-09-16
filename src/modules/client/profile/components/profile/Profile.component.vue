@@ -1,0 +1,42 @@
+<template>
+  <a-card class="bg-gray-800 text-white rounded-lg shadow-lg lg:h-[500px]  " bordered>
+    <template #title>
+      <span class="text-xl font-semibold">{{ $t("profile.title") }}</span>
+    </template>
+
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center items-center h-full">
+      <a-spin size="large" />
+    </div>
+
+    <!-- Profile Content -->
+    <div v-else>
+      <div class="flex flex-col items-center">
+        <a-avatar :src="profile.avatar" size="large" class="!w-24 !h-24" />
+        <span class="font-semibold mt-2">{{ profile.username }}</span>
+        <EditProfileComponent />
+      </div>
+
+      <div class="mt-6 space-y-2">
+        <p>
+          <strong>{{ $t("profile.email") }}:</strong> {{ profile.email }}
+        </p>
+        <p>
+          <strong>{{ $t("profile.username") }}:</strong> {{ profile.username }}
+        </p>
+      </div>
+    </div>
+  </a-card>
+</template>
+
+<script setup lang="ts">
+import { useProfile } from '../../composables/profile/useProfile';
+import { useProfileStore } from '../../stores/profile.store';
+import EditProfileComponent from "./EditProfileModal.vue";
+const { profile } = useProfileStore();
+const { loading } = useProfile();
+</script>
+
+<style scoped>
+/* ใช้ tailwind เป็นหลัก เลยไม่ต้องเพิ่ม CSS เยอะ */
+</style>
