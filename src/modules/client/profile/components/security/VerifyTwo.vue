@@ -10,36 +10,21 @@
       </a-form-item>
 
       <a-form-item>
-        <a-button
-          type="primary"
-          html-type="submit"
-          :loading="loading"
-          block
-        >
+        <a-button type="primary" html-type="submit" :loading="loading" block>
           {{ $t("security.confirmOTP") }}
         </a-button>
       </a-form-item>
 
-      <div v-if="message" :class="messageType === 'success' ? 'text-green-500' : 'text-red-500'" class="text-center mt-2">
-        {{ message }}
-      </div>
     </a-form>
   </a-card>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
 import { use2FAValidation } from "../../composables/security/use2FAValidation";
-
-const router = useRouter();
-const { otp, message, messageType, loading, validateOTP } = use2FAValidation();
+const { otp, loading, validateOTP } = use2FAValidation();
 
 const handleSubmit = async () => {
-  const success = await validateOTP();
-  if (success) {
-    router.push({ name: "customer.profile" });
-    window.location.reload();
-  }
+  await validateOTP();
 };
 </script>
 
@@ -47,6 +32,7 @@ const handleSubmit = async () => {
 .text-green-500 {
   color: #22c55e;
 }
+
 .text-red-500 {
   color: #ef4444;
 }

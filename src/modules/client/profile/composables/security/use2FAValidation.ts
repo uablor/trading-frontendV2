@@ -1,10 +1,10 @@
 import { ref } from "vue";
 import { clientApi } from "@/common/configurations/axios.config";
+import { message } from "ant-design-vue";
+import type { AxiosError } from "axios";
 
 export function use2FAValidation() {
   const otp = ref<string>("");
-  const message = ref<string | null>(null);
-  const messageType = ref<"success" | "error" | "">("");
   const loading = ref<boolean>(false);
 
   const validateOTP = async () => {
@@ -12,23 +12,36 @@ export function use2FAValidation() {
     loading.value = true;
 
     try {
-      const response = await clientApi.post("validate-otp/", { otp: otp.value });
-      message.value = response.data.detail;
-      messageType.value = "success";
-      return true;
-    } catch (error: any) {
-      if (error.response && error.response.data) {
-        message.value = error.response.data.detail || "เกิดข้อผิดพลาด";
-        messageType.value = "error";
-      } else {
-        message.value = "เกิดข้อผิดพลาด";
-        messageType.value = "error";
+      const response = await clientApi.post("validate-otp/", {
+        otp: otp.value,
+      });
+      if (response.status == 200) {
+        message.success("Validate OTP successfully");
+        window.location.reload();
       }
-      return false;
+      if (response.status == 201) {
+        message.error("Validate OTP successfully");
+        window.location.reload();
+      } else {
+        message.error("Validate OTP failed");
+      }
+    } catch (e: AxiosError | any) {
+      if (e.response?.data) {
+        const errors = e.response.data;
+        for (const field in errors) {
+          if (Array.isArray(errors[field])) {
+            errors[field].forEach((msg: string) => {
+              message.error(msg);
+            });
+          } else if (typeof errors[field] === "string") {
+            message.error(errors[field]);
+          }
+        }
+      }
     } finally {
       loading.value = false;
     }
   };
 
-  return { otp, message, messageType, loading, validateOTP };
+  return { otp, loading, validateOTP };
 }

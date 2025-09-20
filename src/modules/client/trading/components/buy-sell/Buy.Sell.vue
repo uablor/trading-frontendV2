@@ -1,55 +1,67 @@
 <template>
-    <div class="trade-container">
-        <!-- Amount -->
-        <div class="amount-section">
-            <button class="adjust-button" @click="decreaseAmount">-</button>
-            <input type="number" v-model="price" class="amount-input" />
-            <button class="adjust-button" @click="increaseAmount">+</button>
-        </div>
-
-        <!-- Quick Amount -->
-        <div class="quick-amount-buttons">
-            <button v-for="value in quickAmounts" :key="value" @click="setAmount(value)" class="quick-amount">
-                +{{ value }}
-            </button>
-            <button @click="setAmount('all')" class="quick-amount">All</button>
-        </div>
-
-        <!-- Profit -->
-        <div class="profit-section">
-            <span class="profit-label">Profit</span>
-            <span class="profit-value" :class="{ high: calculatedProfit > 0, low: calculatedProfit < 0 }">
-                {{ calculatedProfit.toFixed(2) }}$
-            </span>
-        </div>
-
-        <!-- Buy/Sell -->
-        <button class="buy-button" :disabled="is_button_enter" @click="queueTrade('buy', 'BTCUSDT')">BUY</button>
-        <div class="countdown">{{ nextCandlestickTime }}</div>
-        <button class="sell-button" :disabled="is_button_enter" @click="queueTrade('sell', 'BTCUSDT')">SELL</button>
+  <div class="trade-container">
+    <!-- Amount -->
+    <div class="amount-section">
+      <button class="adjust-button" @click="decreaseAmount">-</button>
+      <input type="number" v-model="price" class="amount-input" />
+      <button class="adjust-button" @click="increaseAmount">+</button>
     </div>
+
+    <!-- Quick Amount -->
+    <div class="quick-amount-buttons">
+      <button v-for="value in quickAmounts" :key="value" @click="setAmount(value)" class="quick-amount">
+        +{{ value }}
+      </button>
+      <button @click="setAmount('all')" class="quick-amount">All</button>
+    </div>
+
+    <!-- Profit -->
+    <div class="profit-section">
+      <span class="profit-label">Profit</span>
+      <span class="profit-value" :class="{ high: calculatedProfit > 0, low: calculatedProfit < 0 }">
+        {{ calculatedProfit.toFixed(2) }}$
+      </span>
+    </div>
+
+    <!-- Buy/Sell -->
+    <button class="buy-button" :disabled="is_button_enter" @click="queueTrade('buy', 'BTCUSDT')">BUY</button>
+
+    <div v-if="loading" class="flex items-center justify-center h-full">
+      <a-spin size="large" />
+    </div>
+    <div v-else class="countdown">{{ nextCandlestickTime }}</div>
+
+    <button class="sell-button" :disabled="is_button_enter" @click="queueTrade('sell', 'BTCUSDT')">SELL</button>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useTrade } from "../../composables/useTrade";
-
+import { BaseWebsocket } from "@/common/configurations/ws.config";
+const loading = ref<boolean>(true);
 const { price, quickAmounts, calculatedProfit, is_button_enter, decreaseAmount, increaseAmount, setAmount, queueTrade } = useTrade();
 
 const nextCandlestickTime = ref("Loading...");
 
-let socket2: WebSocket | null = null;
-onMounted(() => {
-    socket2 = new WebSocket("ws://127.0.0.1:9000/ws/candlestick/");
-    socket2.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.next_candlestick_time) nextCandlestickTime.value = data.next_candlestick_time;
-        is_button_enter.value = data.is_button_enter;
-    };
+let socket2: ReturnType<typeof BaseWebsocket>; // ⚡ keep reference globally in this component
+
+onMounted(async () => {
+  loading.value = true;
+  try {
+    socket2 = await BaseWebsocket("candlestick/"); // create WS instance
+    await socket2.connect(); // ⚡ ต้องเรียก connect
+    socket2.onMessage((data: any) => {      // ⚡ ใช้ onMessage ไม่ใช่ onmessage
+      if (data.next_candlestick_time) nextCandlestickTime.value = data.next_candlestick_time;
+      is_button_enter.value = data.is_button_enter;
+    });
+  } finally {
+    loading.value = false;
+  }
 });
 
 onBeforeUnmount(() => {
-    socket2?.close();
+  socket2?.close(); // close WS เมื่อ component ถูกทำลาย
 });
 </script>
 
@@ -319,4 +331,3 @@ onBeforeUnmount(() => {
   margin: 0;
 }
 </style>
-

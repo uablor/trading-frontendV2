@@ -36,10 +36,12 @@
     </a-modal>
 </template>
 <script setup lang="ts">
-import { LogoutOutlined , ExclamationCircleOutlined} from '@ant-design/icons-vue';
+import { LogoutOutlined, ExclamationCircleOutlined } from '@ant-design/icons-vue';
 
-import { defineEmits, ref } from "vue";
+import { ref } from "vue";
 import { message } from "ant-design-vue";
+import { useRouter } from "vue-router";
+const router = useRouter();
 
 const logoutLoading = ref<boolean>(false);
 const props = defineProps<{
@@ -50,9 +52,13 @@ const emit = defineEmits<{
     (e: "update:isModalVisible", value: boolean): void;
 }>();
 
-const logout = () => {
+const logout = async () => {
     logoutLoading.value = true;
+    // const res = await clientApi.post("logout/");
+
     message.success("Logged out successfully!");
+    localStorage.clear();
+    router.push({ name: "homepage" });
     emit("update:isModalVisible", false); // ปิด modal
 };
 

@@ -1,19 +1,10 @@
 <template>
   <mainComponent />
 
-  <a-drawer
-    v-model:open="open"
-    class="custom-class"
-    root-class-name="root-class-name"
-    :root-style="{ color: 'blue' }"
-    style="color: red"
-    placement="right"
-    :closable="true"
-    :mask-closable="false"
-    @close="handleClose"
-    @after-open-change="afterOpenChange"
-  >
-    <RouterView />
+  <a-drawer v-model:open="open" class="custom-class" root-class-name="root-class-name" :root-style="{ color: 'blue' }"
+    style="color: red" placement="right" :closable="true" :mask-closable="false" @close="handleClose"
+    @after-open-change="afterOpenChange">
+    <router-view />
   </a-drawer>
 </template>
 
@@ -30,7 +21,10 @@ const open = ref(false);
 watch(
   () => route.name,
   (newName) => {
-    if (newName === 'auth.login' || newName === 'auth.register') {
+    if (newName === 'auth.login' || newName === 'auth.register' ||
+      newName === 'auth.email-verify' || newName === 'auth.resend-verify' ||
+      newName === 'auth.reset-password' || newName === 'auth.confirm-password'
+    ) {
       open.value = true;
     } else {
       open.value = false;
@@ -39,8 +33,8 @@ watch(
   { immediate: true } // ให้ทำงานทันทีตอน mount
 );
 
-const afterOpenChange = (bool: boolean) => {
-//   console.log('open', bool);
+const afterOpenChange = (_bool: boolean) => {
+  // message.success('open', bool);
 };
 
 const handleClose = () => {

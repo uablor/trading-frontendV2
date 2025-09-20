@@ -17,13 +17,16 @@
         <EditProfileComponent />
       </div>
 
-      <div class="mt-6 space-y-2">
-        <p>
-          <strong>{{ $t("profile.email") }}:</strong> {{ profile.email }}
-        </p>
-        <p>
-          <strong>{{ $t("profile.username") }}:</strong> {{ profile.username }}
-        </p>
+      <div class="mt-6 bg-gray-50 p-4 shadow-lg rounded-lg  space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="text-gray-500 font-medium">{{ $t("profile.email") }}:</span>
+          <span class="text-gray-800 font-semibold">{{ profile.email }}</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-gray-500 font-medium">{{ $t("profile.username") }}:</span>
+          <span class="text-gray-800 font-semibold">{{ profile.username }}</span>
+        </div>
       </div>
     </div>
   </a-card>

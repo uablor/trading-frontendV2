@@ -5,7 +5,7 @@
     class="bg-purple-600 hover:bg-purple-700"
     @click="openModal"
   >
-    {{ $t("wallet.deposit") }}
+    {{ $t("wallet.withdraw") }}
   </a-button>
 
   <!-- Modal -->

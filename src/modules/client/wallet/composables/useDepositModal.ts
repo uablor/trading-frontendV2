@@ -1,3 +1,4 @@
+import { message } from "ant-design-vue";
 import { ref } from "vue";
 
 export function useDepositModal() {
@@ -13,12 +14,14 @@ export function useDepositModal() {
   };
 
   const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("Copied to clipboard!");
-    } catch (err) {
-      console.error("Copy failed:", err);
-    }
+  
+      navigator.clipboard.writeText(text)
+    .then(() => {
+      message.success("Copied to clipboard");
+    })
+    .catch(() => {
+      message.error("Failed to copy to clipboard");
+    });
   };
 
   return {

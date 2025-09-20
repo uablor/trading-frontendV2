@@ -1,10 +1,11 @@
-export const WalletRouter = [
+import type { RouteRecordRaw } from "vue-router";
+
+export const WalletRouter: RouteRecordRaw[] = [
   {
     path: "wallet",
     name: "customer.wallet",
     component: () => import("../views/walletFrom.vue"),
     meta: {
-      requiresAuth: true,
       title: "Wallet",
     },
   },

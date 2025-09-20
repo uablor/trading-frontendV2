@@ -11,6 +11,7 @@ export function useTrade() {
   const walletStore = useWalletStore();
 
   const price = ref<number>(0);
+  const loading = ref<boolean>(false);
   const quickAmounts = [5, 10, 20, 50, 100];
   const profitPercentage = ref<number>(95);
   const is_button_enter = ref(false);

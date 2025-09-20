@@ -22,15 +22,15 @@
         height: 'calc(100vh - 64px)',
         overflow: 'auto',
         zIndex: 999,
-      }">
-        <SidebarComponent />
+      }" class=" hidden md:block">
+        <SidebarComponent :is-sidebar-open="true" />
       </a-layout-sider>
 
       <!-- Content -->
       <a-layout :style="{
-        marginLeft: '80px',
+        // marginLeft: '80px',
         transition: 'all 0.2s',
-      }">
+      }" class=" ml-0 md:ml-20">
         <a-layout-content :style="{
           padding: '24px',
           minHeight: 'calc(100vh - 64px)',
@@ -44,9 +44,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import NavbarComponent from "./NavbarLayout.vue";
 import SidebarComponent from "./SidebarLayout.vue";
+import { useProfile } from "../profile/composables/profile/useProfile";
+useProfile();
 
 </script>
 

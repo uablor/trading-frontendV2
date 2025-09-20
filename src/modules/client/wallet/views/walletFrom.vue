@@ -5,7 +5,10 @@
                 <div class="text-lg font-semibold">
                     {{ $t("wallet.totalBalance") }}
                 </div>
-                <div class="text-2xl sm:text-3xl font-bold text-green-500 pt-3 pb-3">
+                <div v-if="loading" class="text-2xl sm:text-3xl font-bold text-green-500 pt-3 pb-3">
+                    <a-spin size="large" />
+                </div>
+                <div v-else class="text-2xl sm:text-3xl font-bold text-green-500 pt-3 pb-3">
                     ${{ Price }}
                 </div>
                 <div class="text-sm text-gray-400">
@@ -44,7 +47,7 @@ import TableComponent from "../components/Table.component.vue";
 // ใช้ composable
 import { useWallet } from "../composables/useWallet";
 
-const { Price,wallet, PnL, PnLPercent } = useWallet();
+const {loading, Price, PnL, PnLPercent } = useWallet();
 </script>
 
 <style scoped lang="scss"></style>

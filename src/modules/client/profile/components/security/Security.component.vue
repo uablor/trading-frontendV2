@@ -6,7 +6,7 @@
         <div class="mb-4 flex flex-col space-y-2">
             <div class="flex justify-between items-center">
                 <p>{{ $t("security.identityVerification") }}</p>
-                <verify2FA :is2faEnabled="securityData.is_2fa_enabled" />
+                <verify2FA :is2faEnabled="securityData.is_2fa_enabled" ref="modalRef" />
             </div>
             <p class="text-sm text-gray-400">
                 {{ $t("security.identityVerificationInfo") }}
@@ -17,9 +17,7 @@
         <div class="mb-4 flex flex-col space-y-2">
             <div class="flex justify-between items-center">
                 <p>{{ $t("security.password") }}</p>
-                <a-button type="primary" danger @click="changePassword">
-                    {{ $t("security.change") }}
-                </a-button>
+                <password-component />
             </div>
             <p class="text-sm text-gray-400">
                 {{ $t("security.changePasswordInfo") }}
@@ -30,7 +28,7 @@
         <div class="mb-4 flex flex-col space-y-2">
             <div class="flex justify-between items-center">
                 <p>{{ $t("security.twoFACode") }}</p>
-                <a-switch v-model:checked="securityData.is_2fa_enabled" @change="toggle2FA" />
+                <a-switch v-model:checked="securityData.is_2fa_enabled" :disabled="!securityData.is_2fa_enabled" />
             </div>
             <p class="text-sm text-gray-400">{{ $t("security.twoFAInfo") }}</p>
         </div>
@@ -50,20 +48,18 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { useSecurity } from "../../composables/security/useSecurity";
+import PasswordComponent from "./Password.component.vue";
 import verify2FA from "./Verify2FAModal.vue";
 
 const {
     securityData,
     loading,
-    toggle2FA,
     toggleTransactionPassword,
 } = useSecurity();
+const modalRef = ref<InstanceType<typeof verify2FA>>();
 
-const changePassword = () => {
-    // redirect หรือเปิด modal เปลี่ยนรหัสผ่าน
-    console.log("Change password clicked");
-};
 </script>
 
 <style scoped>

@@ -11,6 +11,7 @@ import { debounce } from "lodash";
 import { clientApi } from "@/common/configurations/axios.config";
 import type { KlineData } from "../entities/klinedata.entities";
 import type { WebSocketKline } from "../entities/websocketkline.entities";
+import { BaseWebsocket } from "@/common/configurations/ws.config";
 
 export function useTradingChart(symbol: string) {
   const chartContainer = ref<HTMLDivElement | null>(null);
@@ -18,12 +19,8 @@ export function useTradingChart(symbol: string) {
   const candleSeries = ref<ISeriesApi<"Candlestick"> | null>(null);
   const volumeSeries = ref<ISeriesApi<"Histogram"> | null>(null);
   const loading = ref<boolean>(true);
-
-  let socket: WebSocket | null = null;
-  const reconnectAttempts = ref(0);
-  const maxReconnectAttempts = 10;
-
   let resizeObserver: ResizeObserver | null = null;
+  let ws: ReturnType<typeof BaseWebsocket>; // ⚡ keep reference
 
   const resizeChart = () => {
     if (chart.value && chartContainer.value) {
@@ -34,33 +31,49 @@ export function useTradingChart(symbol: string) {
     }
   };
 
-  // 🟢 Init Chart
   const initChart = async () => {
     await nextTick();
     if (!chartContainer.value) return;
-
     chart.value = createChart(chartContainer.value, {
       width: chartContainer.value.clientWidth,
-      height: 450,
+      height: chartContainer.value.clientHeight - 50,
       layout: { background: { color: "#fff" }, textColor: "#000" },
       grid: {
         vertLines: { color: "rgba(102, 102, 102, 0.2)" },
         horzLines: { color: "rgba(102, 102, 102, 0.2)" },
       },
-      timeScale: { timeVisible: true, secondsVisible: false },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        rightOffset: 8,
+        fixRightEdge: false,
+        barSpacing: 10,
+        minBarSpacing: 0.5,
+        fixLeftEdge: false,
+      },
+      // ... options เดิม
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: true,
+      },
+      handleScale: {
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true,
+      },
       crosshair: {
         mode: 1,
         vertLine: {
-          color: "#6A5ACD",
           width: 1,
-          visible: true,
-          labelVisible: true,
+          color: "#758696",
+          style: 2,
         },
         horzLine: {
-          color: "#6A5ACD",
           width: 1,
-          visible: true,
-          labelVisible: true,
+          color: "#758696",
+          style: 2,
         },
       },
     });
@@ -72,6 +85,12 @@ export function useTradingChart(symbol: string) {
       borderDownColor: "#EE0B30",
       wickUpColor: "#07C95B",
       wickDownColor: "#EE0B30",
+    });
+    candleSeries.value.priceScale().applyOptions({
+      scaleMargins: {
+        top: 0,
+        bottom: 0.3,
+      },
     });
 
     volumeSeries.value = chart.value.addHistogramSeries({
@@ -92,12 +111,9 @@ export function useTradingChart(symbol: string) {
 
   const fetchInitialData = async () => {
     try {
-      //   const response = await fetch(
-      //     `http://127.0.0.1:8000/api/klines/${symbol}/`
-      //   );
-      const response = await clientApi.get(`http://127.0.0.1:8000/api/klines/`);
+      const response = await clientApi.get(`klines`);
       loading.value = false;
-      const data: KlineData[] = await response.data;
+      const data: KlineData[] = response.data;
 
       const klineData: CandlestickData[] = data.map((d) => ({
         time: d.time,
@@ -117,6 +133,7 @@ export function useTradingChart(symbol: string) {
       volumeSeries.value?.setData(volumeData);
     } catch (err) {
       console.error(`Error fetching ${symbol} data:`, err);
+      throw err; // ส่งต่อ error เพื่อให้ onMounted จัดการ
     }
   };
 
@@ -141,49 +158,44 @@ export function useTradingChart(symbol: string) {
     requestAnimationFrame(() => {
       candleSeries.value?.update(klineData);
       volumeSeries.value?.update(volumeData);
-      if (loading.value) loading.value = false; 
+      if (loading.value) loading.value = false;
     });
   }, 300);
 
-  const connectWebSocket = () => {
-    socket?.close();
-    // socket = new WebSocket(`ws://127.0.0.1:9000/ws/klines/${symbol}/`);
-    socket = new WebSocket(`ws://127.0.0.1:9000/ws/klines/`);
-    socket.onopen = () => {
-      console.log(`✅ WebSocket connected: ${symbol}`);
-      reconnectAttempts.value = 0;
-    };
-    socket.onmessage = (event: MessageEvent) => {
-      try {
-        handleWebSocketData(JSON.parse(event.data));
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    socket.onerror = (err) =>
-      console.error(`WebSocket error (${symbol}):`, err);
-    socket.onclose = () => {
-      console.log(`🔄 WebSocket disconnected: ${symbol}`);
-      if (reconnectAttempts.value < maxReconnectAttempts) {
-        reconnectAttempts.value++;
-        setTimeout(connectWebSocket, 5000);
-      }
-    };
-  };
-
   onMounted(async () => {
-    loading.value = true;
-    await initChart();
-    await fetchInitialData();
-    loading.value = false; 
-    connectWebSocket();
-    
+    try {
+      loading.value = true;
+
+      // รอให้ DOM พร้อม
+      await nextTick();
+
+      // รอสักครู่เพื่อให้ container พร้อม
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      await initChart();
+      await fetchInitialData();
+
+      // เชื่อมต่อ WebSocket
+      ws = BaseWebsocket(`klines/`);
+      ws.onMessage(handleWebSocketData);
+      ws.connect();
+
+      // รอสักครู่ก่อนปิด loading เพื่อให้ chart render เสร็จ
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      loading.value = false;
+    } catch (error) {
+      console.error("Error initializing chart:", error);
+      loading.value = false;
+    } finally {
+      loading.value = false;
+    }
   });
 
   onBeforeUnmount(() => {
-    socket?.close();
+    ws?.close();
     resizeObserver?.disconnect();
   });
 
-  return { chartContainer ,loading};
+  return { chartContainer, loading };
 }

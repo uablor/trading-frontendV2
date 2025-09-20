@@ -1,11 +1,12 @@
 <template>
   <a-dropdown trigger="click">
-    <a class="ant-dropdown-link" @click.prevent>
+    <a class="ant-dropdown-link flex" @click.prevent>
       <a-avatar shape="square" size="small" style="background:#1890ff">W</a-avatar>
-      <span class="wallet-label">
-        {{ activeAccount.label }} ({{ activeAccount.key }})
+      <span class="wallet-label flex ">
+        <p class="hidden lg:block">{{ activeAccount.label }}</p> ({{ activeAccount.key }})
         <span :style="{ color: balances[activeAccount.key] >= 0 ? '#52c41a' : '#f5222d', fontWeight: '600' }">
-          {{ balances[activeAccount.key] }} USDT
+          <a-spin v-if="loading" size="small" />
+          <span v-else>{{ balances[activeAccount.key] }} USDT</span>
         </span>
       </span>
       <DownOutlined />
@@ -24,11 +25,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed } from "vue";
 import { DownOutlined } from "@ant-design/icons-vue";
-import { useWalletStore } from "../trading/stores/trading.store";
+import { useWallet } from "../../composables/useWallet";
 
-const walletStore = useWalletStore();
+const { wallet, loading } = useWallet();
+
 interface Account {
   key: "real" | "demo";
   label: string;
@@ -41,10 +43,10 @@ const accounts: Account[] = [
 
 const activeAccount = ref<Account>(accounts[0]);
 
-const balances = reactive<{ [key in "real" | "demo"]: number }>({
-  real: 900,
-  demo: 1000,
-});
+const balances = computed(() => ({
+  demo: wallet?.demo_balance ?? 0,
+  real: wallet?.real_balance ?? 0,
+}));
 
 const onSelectAccount = ({ key }: { key: string }) => {
   activeAccount.value = accounts.find((account) => account.key === key) || accounts[0];

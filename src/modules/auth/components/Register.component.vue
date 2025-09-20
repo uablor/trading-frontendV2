@@ -37,7 +37,7 @@
     </a-form-item>
 
     <!-- Confirm Password -->
-    <a-form-item :label="$t('register.password_confirm')" name="password_confirm" :rules="[
+    <a-form-item :label="$t('register.password_confirm')" name="password2" :rules="[
       { required: true, message: $t('register.error_password_confirm') },
     ]">
       <a-input-password v-model:value="form.password2" size="large" autocomplete="new-password">

@@ -1,13 +1,12 @@
 import { reactive, ref } from "vue";
-import { useAuthStore } from "../stores/authStore";
 import { useRouter } from "vue-router";
 import type { AuthRegisterPayload } from "../interfaces/auth.interfaces";
 import { clientApi } from "@/common/configurations/axios.config";
-import { useI18n } from "vue-i18n";
 import { openNotificationWithIcon } from "@/common/ui/notificationwithIcon";
+import type { AxiosError } from "axios";
+import { message } from "ant-design-vue";
 
 export function useRegisterForm() {
-  const { t } = useI18n();
   const form = reactive<AuthRegisterPayload>({
     email: "",
     password: "",
@@ -17,39 +16,42 @@ export function useRegisterForm() {
 
   const loading = ref<boolean>(false);
   const router = useRouter();
+
+  const clearForm = () => {
+    form.email = "";
+    form.password = "";
+    form.username = "";
+    form.password2 = "";
+  };
   const onFinish = async () => {
     loading.value = true;
     try {
       const result = await clientApi.post("user-register/", form);
-      if (result.data.is_2fa_enabled) {
-        router.push({
-          name: "verify2fa",
-          query: {
-            email: form.email,
-            twoFALoginToken: result.data.access,
-          },
-        });
+
+      if (result.status === 201) {
+        openNotificationWithIcon("success", "Success", "Register successful");
+        clearForm();
+        await router.push({ name: "auth.verify", params: { email: form.email } });
+        openNotificationWithIcon(
+          "info",
+          "Info",
+          "Please check your email to verify your account."
+        );
       } else {
-        if (result.status === 201) {
-          openNotificationWithIcon("success", "Success", "Register successful");
-          await router.push({ name: "customer.lucifer" });
-        } else {
-          openNotificationWithIcon("error", "Error", "Login failed");
-        }
+        openNotificationWithIcon("error", "Error", "Login failed");
       }
-    } catch (error: any) {
-      if (error.response.data.non_field_errors) {
-        openNotificationWithIcon(
-          "error",
-          "Error",
-          `${t("error.message.login")}`
-        );
-      } else {
-        openNotificationWithIcon(
-          "error",
-          "Error",
-          `${t("error.message.login")}`
-        );
+    } catch (e: AxiosError | any) {
+      if (e.response?.data) {
+        const errors = e.response.data;
+        for (const field in errors) {
+          if (Array.isArray(errors[field])) {
+            errors[field].forEach((msg: string) => {
+              message.error(msg);
+            });
+          } else if (typeof errors[field] === "string") {
+            message.error(errors[field]);
+          }
+        }
       }
     } finally {
       loading.value = false;

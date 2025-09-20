@@ -1,11 +1,13 @@
 <template>
-  <a-layout-header class="navbar">
+  <a-layout-header class="navbar" style="margin: 0;">
     <div class="logo">
       <img src="../../../../assets//image/logo/R.png" alt="logo" />
     </div>
 
     <div class="header-action-container">
-      <LanguageSwitcher @language-changed="onLanguageChanged" />
+      <div class="hidden md:block">
+        <LanguageSwitcher @language-changed="onLanguageChanged" />
+      </div>
 
       <a-button type="primary" ghost >
         <router-link :to="{ name: 'auth.login' }">{{ $t('common.login') }}</router-link>

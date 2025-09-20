@@ -1,6 +1,5 @@
-import router from "@/router";
+
 import axios from "axios";
-import { message } from 'ant-design-vue';
 
 export const clientApi = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,

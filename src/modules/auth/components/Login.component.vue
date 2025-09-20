@@ -30,7 +30,7 @@
 
         <div style="margin: 10px 0px;">
             {{ $t('login.forgot_password?') }}
-            <router-link to="/forgot-password">{{ $t('login.forgot_password') }}</router-link>
+            <router-link :to="{ name: 'auth.reset-password' }">{{ $t('login.forgot_password') }}</router-link>
         </div>
         <a-form-item>
             <a-button class="social-button" type="primary" ghost html-type="submit" block size="large"

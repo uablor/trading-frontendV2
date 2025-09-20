@@ -1,14 +1,12 @@
 import { reactive, ref } from "vue";
 import { useAuthStore } from "../stores/authStore";
-import { notification } from "ant-design-vue";
+import { message, notification } from "ant-design-vue";
 import { useRouter } from "vue-router";
 import type { AuthLoginPayload } from "../interfaces/auth.interfaces";
 import { clientApi } from "@/common/configurations/axios.config";
-import type { IResponseError } from "@/common/interfaces/repones.error";
-import { useI18n } from "vue-i18n";
+import type { AxiosError } from "axios";
 
 export function useLoginForm() {
-  const { t } = useI18n();
   const form = reactive<AuthLoginPayload>({ email: "", password: "" });
 
   const loading = ref(false);
@@ -41,26 +39,25 @@ export function useLoginForm() {
       } else {
         if (result.status === 200) {
           openNotificationWithIcon("success", "Success", "Login successful");
+          console.log(result.data);
           await authStore.Statelogin(result.data);
           await router.push({ name: "customer.lucifer.trading.btc" });
         } else {
           openNotificationWithIcon("error", "Error", "Login failed");
         }
       }
-    } catch (error: any) {
-      console.log(error.response.data);
-      if (error.response.data.non_field_errors[0] === "รหัสผ่านไม่ถูกต้อง." || error.response.data.non_field_errors[0] === "อีเมลนี้ไม่ได้ลงทะเบียน.") {
-        openNotificationWithIcon(
-          "error",
-          "Error",
-          `${t("error.message.passwor_or_email_is_incorrect")}`
-        );
-      } else {
-        openNotificationWithIcon(
-          "error",
-          "Error",
-          `${t("error.message.login")}`
-        );
+    } catch (e: AxiosError | any) {
+      if (e.response?.data) {
+        const errors = e.response.data;
+        for (const field in errors) {
+          if (Array.isArray(errors[field])) {
+            errors[field].forEach((msg: string) => {
+              message.error(msg);
+            });
+          } else if (typeof errors[field] === "string") {
+            message.error(errors[field]);
+          }
+        }
       }
     } finally {
       loading.value = false;
