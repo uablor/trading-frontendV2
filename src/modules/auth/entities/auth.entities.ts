@@ -4,9 +4,9 @@ export interface authtoken {
     user_id: number;
     email: string;
     username: string;
-    is_verify: boolean;
+    is_active: boolean;
     is_2fa_enabled: boolean;
-    role: string;
+    group: string[];
     is_superuser: boolean;
 }
 

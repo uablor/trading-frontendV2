@@ -11,7 +11,7 @@ export function useProfile() {
   const fetchProfile = async () => {
     loading.value = true;
     try {
-      const response = await clientApi.get<Profile>("/auth-me/");
+      const response = await clientApi.get<Profile>("/auth/me/");
       // console.log(response.data);
        Object.assign(profile.profile, response.data);
     } catch (error) {

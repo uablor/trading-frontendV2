@@ -27,7 +27,7 @@ export function useLoginForm() {
   const onFinish = async () => {
     loading.value = true;
     try {
-      const result = await clientApi.post("user-login/", form);
+      const result = await clientApi.post("auth/login/", form);
       if (result.data.is_2fa_enabled) {
         router.push({
           name: "verify2fa",
@@ -39,9 +39,19 @@ export function useLoginForm() {
       } else {
         if (result.status === 200) {
           openNotificationWithIcon("success", "Success", "Login successful");
+          authStore.Statelogin(result.data);
+          console.log("admin");
           console.log(result.data);
-          await authStore.Statelogin(result.data);
-          await router.push({ name: "customer.lucifer.trading.btc" });
+          const groups = result.data.group ?? [];
+
+          if (groups.includes("Admin") || result.data.is_superuser) {
+            await router.push({ name: "admin.dashboard" });
+            console.log("to admin dashboard");
+          } else if (groups.includes("Staff")) {
+            await router.push({ name: "staff.dashboard" });
+          } else {
+            await router.push({ name: "customer.lucifer.trading.btc" });
+          }
         } else {
           openNotificationWithIcon("error", "Error", "Login failed");
         }

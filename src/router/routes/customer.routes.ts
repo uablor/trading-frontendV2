@@ -17,11 +17,9 @@ export const customerRoutes: RouteRecordRaw[] = [
       {
         path: ":pathMatch(.*)*",
         name: "NotFound",
-        component: () => import("@ui/Notfound.vue")
-
+        component: () => import("@ui/Notfound.vue"),
       },
     ],
-    meta: {
-    },
+    meta: {},
   },
 ];

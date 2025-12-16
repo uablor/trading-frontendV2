@@ -24,7 +24,7 @@ export function useEditProfile() {
         formData.append("avatar", avatarFile.value); // ส่งไฟล์จริง
       }
 
-      await clientApi.patch("auth-me/", formData, {
+      await clientApi.patch("auth/me/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

@@ -13,6 +13,7 @@
     "@tailwindcss/vite": "^4.1.13",
     "ant-design-vue": "4.0.0-rc.6",
     "axios": "^1.12.2",
+    "dayjs": "^1.11.18",
     "lightweight-charts": "^4.2.1",
     "lodash": "^4.17.21",
     "pinia": "^3.0.3",

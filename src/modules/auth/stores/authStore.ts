@@ -5,11 +5,15 @@ import type { authtoken } from "../entities/auth.entities";
 export const useAuthStore = defineStore("auth", () => {
   const Statelogin = async (payload: authtoken) => {
     localStorage.setItem("token", payload.access);
-    localStorage.setItem("is_superuser", payload.is_superuser.toString());
-    localStorage.setItem("role", payload.role);
+    localStorage.setItem("is_superuser", (payload.is_superuser ?? false).toString());
+    localStorage.setItem("is_2fa_enabled", (payload.is_2fa_enabled ?? false).toString());
+    localStorage.setItem("is_active", (payload.is_active ?? false).toString());
+    localStorage.setItem("email", payload.email);
+    localStorage.setItem("username", payload.username);
+    if (Array.isArray(payload.group)) {
+      localStorage.setItem("group", JSON.stringify(payload.group));
+    }
     localStorage.setItem("refresh", payload.refresh);
-    localStorage.setItem("user_id", payload.user_id.toString());
-    // localStorage.setItem("role", payload.role);
   };
 
   const clearlogout = async () => {
